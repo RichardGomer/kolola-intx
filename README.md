@@ -6,6 +6,10 @@ to consume activity data from KOLOLA and implement our curated-interchange inter
 
 ## License
 
+Everything here is MIT licensed.  You can do what you like with it, provided the copyright and licensing notice 
+remains intact.
+
+
 ## Get Started
 
 First, decide what you need to implement.  
@@ -22,6 +26,7 @@ with our stock Interchange Bridge to quickly provide the curated-interchange int
 
 * If you're not using javascript, you'll need to take a look at the stock client and re-implement it in your language of choice.
 Don't worry, it's not that complicated!
+
 
 ## Dependencies
 
