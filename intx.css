@@ -24,3 +24,35 @@ DEALINGS IN THE SOFTWARE.
 
 
 
+.kololatarget {
+    display: block;
+    width: 150px;
+    height: 150px;
+    position: relative;
+    
+    background: #2c5ba1;
+    color: #fff;
+    
+    margin:0;
+    padding: 0;
+}
+
+.kololatarget::before, .kololatarget::after {
+    content: "";
+    position: absolute;
+    background: #fff;
+}
+
+.kololatarget::before {
+    top: 30%;
+    left: 46%;
+    height: 40%;
+    width: 8%;
+}
+
+.kololatarget::after {
+    left: 30%;
+    top: 46%;
+    width: 40%;
+    height: 8%;
+}

@@ -28,8 +28,94 @@ function IntxClient()
 {
     var self = this;
     
-    // Fetch, parse and return the given interchange URL
-    self.get = function(url){
-        // TODO
+    self.err = function(msg){};
+    
+    // Get, parse and then run a callback on the the given URL
+    self.fetch = function(url, then)
+    {
+        $.get(url, {}, function(data, status, jqxhr){ receive(then, data, status, jqxhr); }, 'json');
     }
+    
+    var receive = function(then, data, status, jqxhr)
+    {
+        if(typeof data !== 'object')
+        {
+            self.err('Invalid response received from interchange endpoint');
+            return;
+        }
+        
+        var records = data.result.records;
+        
+        // Helper function to find a specific record in the set
+        // TODO: Aliases! (Or all pointers should be canonical?)
+        function findRecord(uri)
+        {
+            for(var rn in records)
+            {
+                var record = records[rn];
+                if(record['@id'] === uri)
+                    return record;
+            }
+            
+            return false; // False if we couldn't find it
+        }
+        
+        // Add references to foreign records inside pointers, for convenience
+        for(var rn in records)
+        {
+            var record = records[rn];
+            
+            for(var fn in record.data)
+            {
+                var field = record.data[fn];
+                
+                if(field.type === 'pointer')
+                {
+                    field.foreign = findRecord(field.uri);
+                }
+            }
+        }
+        
+        then(records);
+    }
+    
+    /**
+     * The raw structure is not that easy to work with, and is overkill for most applications.  These methods flatten it into
+     * something more manageable.
+     */
+    self.fetchFlat = function(url, then)
+    {
+        self.fetch(url, function(records){ then(self.flatten(records)); });
+    }
+    
+    self.flatten = function(records)
+    {
+        var out = [];
+        for(var i in records)
+        {
+            var record = records[i];
+            
+            // Convert event fields to simple URI=>value
+            if(record['@type'] === 'http://schema.kolola.net/kolola/1/event')
+            {
+                for(var dn in record.data)
+                {
+                    var datum = record.data[dn];
+                    out['http://schema.kolola.net/fields/1/event/' + dn] = datum.value;
+                }
+            }
+            // Evidence also gets flattened into simple URI=>value
+            else if(record['@type'] === 'http://schema.kolola.net/kolola/1/eventevidence')
+            {
+                var ev = record.data.evidenceid.foreign;
+                out[ev['@id']] = record.data.value.value; 
+                
+                // TODO: Also populate aliases!
+            }
+        }
+        
+        return out;
+    }
+    
+    
 }

@@ -31,7 +31,7 @@
  *  A KOLOLA DOM Handler searches for approprioately marked-up elements, and allows them to be accessed via the
  *  KOLOLA Interchange DOM Interface.  Normally, a since KololaDOMHandler would be set up at document.interchange
  */
-function KololaDOMHandler(root){
+function BasicIntxDOMHandler(root){
     
     var self = this;
     
@@ -48,11 +48,11 @@ function KololaDOMHandler(root){
          * URIs are assigned by an HTML attribute 'x-kolola-uri'
          * [We use x- rather than an XML namespace, because XML namespace support is dodgy in jQuery]
          */
-        var uris = [$element.att('x-kolola-uri')];
+        var uris = [$element.attr('x-kolola-uri')];
         
         return {
             element: $element.get(0), // Convert to native element
-            uris: [uris],
+            uris: uris,
             setValue: function(value){ $element.val(value); },
             getValue: function(value){ return $element.val(); }
         };
@@ -69,8 +69,9 @@ function KololaDOMHandler(root){
         var elements = [];
         
         // Find elements marked with an interchange URI, and wrap them with the interchange interface
-        $(root).find('[x-kolola-uri]').each(function(el){
-            elements.push(genElementObject(el));
+        $(root).find('[x-kolola-uri]').each(function(i, el){
+            console.log("Found intx DOM element", el);
+            elements.push(genElementObject($(el)));
         });
         
         return elements;
@@ -79,12 +80,3 @@ function KololaDOMHandler(root){
     
     
 }
-
-/**
- * Set up a DOM handler covering all elements in the page, and expose it to other scripts via document.interchange
- */
-$(document).ready(function(){
-   
-    document.interchange = KololaDomSetup($('body'));
-    
-});

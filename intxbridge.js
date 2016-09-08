@@ -37,6 +37,7 @@ function IntxBridge(options){
         dropHandler: false, // The element that we should listen for drops on
         client: false, // The interchange client to use - false creates a new one
         dom: false, // The interchange DOM Interface to use; false => document.interchange
+        success: function(){}
     }, options);
     
     if(!options.dom)
@@ -46,12 +47,86 @@ function IntxBridge(options){
         options.client = new IntxClient();
     
     // Set up drop handling...
+    $(options.dropHandler).on('dragover', function(e){
+        
+        console.log(e);
+        e.originalEvent.dataTransfer.dropEffect = 'copy';
+        
+        
+        if (e.originalEvent.preventDefault) e.originalEvent.preventDefault(); 
+        return false;
+    });
     
-    
+    $(options.dropHandler).on('drop', function(e){
+        
+        e.preventDefault();
+        
+                
         // Get the data from the client
+        var url = e.originalEvent.dataTransfer.getData('x-kolola/intx-resolver');
+        
+        if(!url){ return; }
+        
+        options.client.fetchFlat(url, function(data){
+            
+            // Try to match page elements with data
+            var elements = options.dom.getElements();
+            
+            console.log("Received data", data);
+            console.log("Received elements", elements);
+            
+            for(var i in elements){
+
+                var el = elements[i];
+
+                // Check all element URIs
+                for(var j in el.uris)
+                {
+                    var euri = el.uris[j];
+                    
+                    console.log("Try to find field", euri);
+
+                    for(var uri in data)
+                    {
+                        if(uri === euri)
+                        {
+                            self.annotate(el, data[uri]);
+                        }
+                    }
+                }
+
+            }
+        });
+        
+    });
     
-        // Find all the elements
+    /**
+     * Object methods
+     */
     
-        // Try to match elements with data
+    /**
+     * Annotate an element as having data available for transposition
+     * 
+     * @param {type} element: An element object from the DOM interface
+     * @param {type} value
+     * @returns void
+     */
+    self.annotate = function(element, value){
+        self.populate(element, value); // TODO!
+    }
+    
+    /**
+     * Actually populate an element with the value from a datum object
+     * 
+     * @param {type} element: An element object from the DOM interface
+     * @param {type} value
+     * @returns void
+     */
+    self.populate = function(element, value){
+        
+        element.setValue(value);
+        
+    }
+
     
 }

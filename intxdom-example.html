@@ -27,6 +27,101 @@ DEALINGS IN THE SOFTWARE.
         <title>Interchange Demo</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <style type="text/css">
+            
+            @import url('intx.css');
+            
+            html {
+                background: #2c5ba1;
+                font-family: sans-serif;
+                font-size: 14pt;
+            }
+            
+            body {
+                width: 900px;
+                border: 1px solid #666;
+                background: #fff;
+                padding: 5px 20px 10px 20px;
+                margin: 10px auto 10px auto;
+            }
+            
+            label {
+                display: block;
+                margin: 15px 0 5px 0;
+                font-size: 0.7em;
+            }
+            
+            
+            
+        </style>
+        
+        <script
+            src="https://code.jquery.com/jquery-3.1.0.min.js"
+            integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+            crossorigin="anonymous"></script>
+                          
+        <script src="intxclient.js"></script>
+        <script src="intxbridge.js"></script>
+        <script src="intxdom.js"></script>
+        
+        <script>
+
+            $(document).ready(function(){
+
+                console.log("Setting up intx bridge");
+
+                /**
+                 * Set up a DOM extension covering all elements in the page, 
+                 * and expose it to other scripts via document.interchange
+                 */
+                document.interchange = new BasicIntxDOMHandler($('body'));
+                
+                console.log('document.interchange', document.interchange);
+                console.log('document.interchange.getElements()', document.interchange.getElements());
+                
+                /**
+                 * Set up a client with a custom error handler
+                 */
+                var client = new IntxClient();
+                client.err = function(str)
+                { 
+                    var orig = $('#ktarget').css('backgroundColor');
+                    
+                    $('#ktarget').  fadeOut(800, function(){ $('#ktarget').css({backgroundColor: '#dd5555'}) }).
+                                    fadeIn(800).
+                                    delay(800).
+                                    fadeOut(800, function(){ $('#ktarget').css({backgroundColor: orig}) }).
+                                    fadeIn(800); 
+                };
+                
+                client.done = function(str)
+                { 
+                    var orig = $('#ktarget').css('backgroundColor');
+                    
+                    $('#ktarget').  fadeOut(800, function(){ $('#ktarget').css({backgroundColor: '#33cc33'}) }).
+                                    fadeIn(800).
+                                    delay(800).
+                                    fadeOut(800, function(){ $('#ktarget').css({backgroundColor: orig}) }).
+                                    fadeIn(800); 
+                };
+                
+                /**
+                 * Set up the Interchange Bridge itself, which uses the DOM
+                 * extension to query the page for interchange elements
+                 */
+                new IntxBridge({
+                    dropHandler: $('#ktarget'),
+                    client: client
+                });
+
+            });
+            
+            
+            
+            
+        </script>
+        
     </head>
     <body>
         <h1>KOLOLA Interchange Demo</h1>
@@ -35,21 +130,28 @@ DEALINGS IN THE SOFTWARE.
             Interchange Bridge and Interchange Client to fill form fields when a KOLOLA activity is
             dropped on to the target.</p>
         
-        <div id="ktarget" class="kolola-target"><!-- Some useful CSS classes are provided in intx.css -->
+        <div id="ktarget" class="kololatarget"></div><!-- Some useful CSS classes are provided in intx.css -->
             
             <form>
                 
+                <!-- TODO: x-kolola-compatible="" to set which activity types are compatible with this form -->
+                
                 <!-- http://schema.kolola.net/fields/1/ is what we use to refer to the built-in fields -->
-                <input type="text" name="title" x-kolola-uri="http://schema.kolola.net/fields/1/event/Title" />
+                <label for="title">Publication Title</label>
+                <input type="text" id="title" x-kolola-uri="http://schema.kolola.net/fields/1/event/name" />
+                
+                <label for="date">Publication Date</label>
+                <input type="text" id="date" x-kolola-uri="http://schema.kolola.net/fields/1/event/startdate" />
                 
                 
                 <!-- Other URIs generally refer to the value from evidence records -->
                 <!-- This is the "journal title" field from the RCUK CQS framework -->
-                <input type="text" name="title" x-kolola-uri="http://schema.kolola.net/fw/researchfish/1/evidence/8" />
+                <label for="jtitle">Journal Title</label>
+                <input type="text" id="jtitle" x-kolola-uri="http://schema.kolola.net/fw/researchfish/1/evidence/8" />
+                
+                
                 
             </form>
-            
-        </div>
         
     </body>
 </html>
