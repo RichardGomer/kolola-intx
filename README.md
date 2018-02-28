@@ -172,3 +172,24 @@ Finally, the recordset includes an "aliases" array that lists any known sameas r
   }
 }
 ```
+
+## Interchange API Methods
+
+In addition to dereferencing interchange links from dropped activities, the Interchange API can be used to export records from KOLOLA instances through batch or automated processes. These methods require authentication, so you'll need to create an API token through your instances admin tools.
+
+### search
+
+You can search for events using an query that's supported by the normal KOLOLA interface. Use a request similar to the following:
+```
+https://instancename.impactrecord.eu/api/intx/?search&q=SEARCH_QUERY&token=API_TOKEN
+```
+The returned recordset will include all activities that match the search query, and associated records linking them to evidence and people etc.
+
+### export all
+
+You can export all records from an eportfolio; this is mostly useful for making backups or bulk-importing data into other systems. To do so, use a query like so:
+```
+https://instancename.impactrecord.eu/api/intx/?export&token=API_TOKEN
+```
+This can take some time on very heavily-populated instances, so be sure to set an appropriately long timeout in your HTTP client.  
+
