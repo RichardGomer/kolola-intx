@@ -68,3 +68,107 @@ We provide a reference implementation of the DOM Interface to demonstrate the in
 in order to work with the Interchange Bridge.  It's also a useful tool in itself, providing a *really* quick way to pre-fill
 HTML forms with data from dropped events, just by annotating the input fields with KOLOLA URIs.  See the example page, 
 intxdom-example.html, for an example of how it works.
+
+## Interchange API Format
+
+The interchange API returns records in a linked-data format. Each record has an associated URI (and, if present, a series of aliases) that allow records to be identified across multiple systems. An sample of the returned data is shown below. 
+
+The main body of the response is included in "result". If the request was unsusccessful, "success" will be false, and error field will contain an error message instead.
+
+Within result is a *recordset*. The recordset contains some metadata (like when it was generated, and by whom) and a series of *records*, within the "records" array. 
+
+Each *record* has a URI which identifies it (in the @id) field, a type that identifies the type of record (in practical terms, the database table that it came from, in @type) and a series of *fields*, in "data".
+
+Each field is either raw data (type = data) or a pointer to another record (type = pointer). Pointers refer to other records which, in many cases, will be included the recordset. In some cases, pointers might refer to records that are NOT included in the provided recordset. For instance, we never return personal information through the interchange API and so no person records will be included.
+
+Finally, the recordset includes an "aliases" array that lists any known sameas relationships between URIs in the dataset. In most cases this set is empty; but may be populated in some advanced use cases. Please speak to us if you need to understand more about how KOLOLA uses sameas relationships to combine and link between records from multiple sources.
+
+
+```json
+{
+  "success": true,
+  "result": {
+    "@id": "",
+    "@type": "http://schema.kolola.net/intx/2.0/set",
+    "description": "Result of query from Interchange API on wen.impactrecord.eu",
+    "author": "Anonymous",
+    "date": "2018-02-28 14:35:09",
+    "records": [
+      {
+        "@id": "http://wen.impactrecord.eu/_records/01/_intxv1/event/EventID/22",
+        "@type": "http://schema.kolola.net/kolola/1/event",
+        "date": "2018-02-28 14:35:09",
+        "data": {
+          "eventid": {
+            "type": "data",
+            "value": ""
+          },
+          "name": {
+            "type": "data",
+            "value": "Hatch Farm Residents Association Meeting"
+          },
+          "startdate": {
+            "type": "data",
+            "value": "2018-02-22"
+          },
+          "enddate": {
+            "type": "data",
+            "value": "2018-02-22"
+          },
+          "description": {
+            "type": "data",
+            "value": ""
+          },
+          "location": {
+            "type": "data",
+            "value": ""
+          },
+          "organisation": {
+            "type": "data",
+            "value": ""
+          },
+          "typeid": {
+            "type": "pointer",
+            "uri": "http://brucetennent.impactrecord.uk/framework/_intxv1/type/TypeID/2"
+          },
+          "caleventid": {
+            "type": "data",
+            "value": ""
+          }
+        },
+        "alias": []
+      },
+      {
+        "@id": "http://wen.impactrecord.eu/_records/01/_intxv1/eventparticipant/EventParticipantID/39",
+        "@type": "http://schema.kolola.net/kolola/1/eventparticipant",
+        "date": "2018-02-28 14:35:09",
+        "data": {
+          "eventparticipantid": {
+            "type": "data",
+            "value": ""
+          },
+          "eventid": {
+            "type": "pointer",
+            "uri": "http://wen.impactrecord.eu/_records/01/_intxv1/event/EventID/22"
+          },
+          "personid": {
+            "type": "pointer",
+            "uri": "http://wen.impactrecord.eu/_records/01/_intxv1/person/PersonID/2"
+          },
+          "comment": {
+            "type": "data",
+            "value": ""
+          },
+          "role": {
+            "type": "data",
+            "value": ""
+          }
+        },
+        "alias": []
+      }
+
+    ],
+    "aliases": []
+  }
+}
+```
