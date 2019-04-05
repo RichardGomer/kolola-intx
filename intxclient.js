@@ -90,7 +90,7 @@ function IntxClient()
 
     self.flatten = function(records)
     {
-        var out = [];
+        var out = {};
 
         //console.log("Flattening", records);
 
@@ -122,6 +122,13 @@ function IntxClient()
                 out[ev['@id']] = record.data.value.value;
 
                 // TODO: Also populate aliases!
+            }
+            else if(record['@type'] === 'http://schema.kolola.net/kolola/1/link')
+            {
+                var linkuri = 'http://schema.kolola.net/fields/1/event/_special/firstlink';
+
+                if(typeof out[linkuri] === 'undefined')
+                  out[linkuri] = record.data.url.value;
             }
         }
 
