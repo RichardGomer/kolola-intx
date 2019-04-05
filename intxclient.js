@@ -21,6 +21,11 @@
  *
  */
 
+// May be used a node module
+if(typeof module !== 'undefined') {
+ $ = require('jquery');
+}
+
 /**
  *  The interchange client retrieves and parses data from the KOLOLA interchange API
  */
@@ -44,7 +49,7 @@ function IntxClient()
             return;
         }
 
-        var records = data.result.records;
+        var records = data.result.records.records;
 
         // Helper function to find a specific record in the set
         // TODO: Aliases! (Or all pointers should be canonical?)
@@ -60,7 +65,7 @@ function IntxClient()
             return false; // False if we couldn't find it
         }
 
-        // Add references to foreign records inside pointers, for convenience
+        // Add references to foreign records
         for(var rn in records)
         {
             var record = records[rn];
@@ -72,6 +77,19 @@ function IntxClient()
                 if(field.type === 'pointer')
                 {
                     field.foreign = findRecord(field.uri);
+
+                    // Also add a reference in the reverse direction
+                    if(field.foreign !== false)
+                    {
+                        //console.log("Foreign record", field.foreign);
+                        if(typeof field.foreign.references === 'undefined')
+                            field.foreign.references = {};
+
+                        if(typeof field.foreign.references[record['@type']] === 'undefined')
+                            field.foreign.references[record['@type']] = [];
+
+                        field.foreign.references[record['@type']].push(record);
+                    }
                 }
             }
         }
@@ -88,19 +106,28 @@ function IntxClient()
         self.fetch(url, function(records){ then(self.flatten(records)); });
     }
 
+    // Flatten a single event
+    // this function is naive and will raise an exception if called on a result that
+    // contains more than one event!
     self.flatten = function(records)
     {
-        var out = {};
+        var out = [];
+        var eventCount = 0;
 
-        //console.log("Flattening", records);
+        console.log("Flattening", records);
 
         for(var i in records)
         {
             var record = records[i];
 
             // Convert event fields to simple URI=>value
-            if(record['@type'] === 'http://schema.kolola.net/kolola/1/event')
+            if(record['@type'] === TYPE.event)
             {
+                eventCount++;
+
+                if(eventCount > 1)
+                    throw "Cannot flatten() (or fetchFlat()) more than a single event at a time - use fetch() and parse the original result";
+
                 for(var dn in record.data)
                 {
                     var datum = record.data[dn];
@@ -116,22 +143,45 @@ function IntxClient()
                 }
             }
             // Evidence also gets flattened into simple URI=>value
-            else if(record['@type'] === 'http://schema.kolola.net/kolola/1/eventevidence')
+            else if(record['@type'] === TYPE.eventevidence)
             {
                 var ev = record.data.evidenceid.foreign;
                 out[ev['@id']] = record.data.value.value;
 
                 // TODO: Also populate aliases!
             }
-            else if(record['@type'] === 'http://schema.kolola.net/kolola/1/link')
-            {
-                var linkuri = 'http://schema.kolola.net/fields/1/event/_special/firstlink';
-
-                if(typeof out[linkuri] === 'undefined')
-                  out[linkuri] = record.data.url.value;
-            }
         }
 
         return out;
     }
+}
+
+// Constants that are useful for manipulating the returned interchange data
+const KTYPE = {
+    event: 'http://schema.kolola.net/kolola/1/event',
+
+    // Links & Attachments
+    link: 'http://schema.kolola.net/kolola/1/link',
+    attachment: 'http://schema.kolola.net/kolola/1/attachment',
+
+    // Participants
+    person: 'http://schema.kolola.net/kolola/1/person',
+    eventparticipant: 'http://schema.kolola.net/kolola/1/eventparticipant',
+
+    // Features, types, categories
+    eventfeature: 'http://schema.kolola.net/kolola/1/eventfeature',
+    feature: 'http://schema.kolola.net/kolola/1/feature',
+    type: 'http://schema.kolola.net/kolola/1/type',
+    category: 'http://schema.kolola.net/kolola/1/category',
+
+    // Evidence
+    eventevidence: 'http://schema.kolola.net/kolola/1/eventevidence',
+    evidence: 'http://schema.kolola.net/kolola/1/evidence',
+
+}
+
+if(typeof module !== 'undefined') {
+    var exports = module.exports = {};
+    exports.TYPE = KTYPE;
+    exports.IntxClient = IntxClient;
 }
